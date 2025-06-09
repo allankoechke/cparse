@@ -45,6 +45,13 @@ packToken default_instanceof(TokenMap scope) {
   return false;
 }
 
+packToken map_contains(TokenMap scope) {
+    TokenMap map = scope["this"].asMap();
+    std::string key = scope["key"].asString();
+
+    return map.map().count(key) > 0;
+}
+
 /* * * * * LIST Type built-in functions * * * * */
 
 const args_t push_args = {"item"};
@@ -100,6 +107,18 @@ packToken list_join(TokenMap scope) {
   }
 
   return result.str();
+}
+
+packToken list_contains(TokenMap scope) {
+    TokenList list = scope.find("this")->asList();
+    packToken* search_value = scope.find("value");
+
+    for (const auto& item : list.list()) {
+        if (item == *search_value) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /* * * * * STR Type built-in functions * * * * */
@@ -171,6 +190,7 @@ struct Startup {
     base_list["pop"] = CppFunction(list_pop, list_pop_args, "pop");
     base_list["len"] = CppFunction(list_len, "len");
     base_list["join"] = CppFunction(list_join, {"chars"}, "join");
+    base_list["contains"] = CppFunction(list_contains, {"value"}, "contains");
 
     TokenMap& base_str = calculator::type_attribute_map()[STR];
     base_str["len"] = CppFunction(&string_len, "len");
@@ -184,6 +204,7 @@ struct Startup {
     base_map["len"] = CppFunction(map_len, "len");
     base_map["instanceof"] = CppFunction(&default_instanceof,
                                          {"value"}, "instanceof");
+    base_map["contains"] = CppFunction(map_contains, {"key"}, "contains");
   }
 } __CPARSE_STARTUP;
 
